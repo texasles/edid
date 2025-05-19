@@ -46,7 +46,6 @@
       <hr>
       <div><span>Pixel Clock:</span> <span id="edid-pclk"></span> MHz</div>
       <div><span>Data Rate:</span> <span id="edid-dr"></span> Gbps</div>
-      <div><span>Cable Rec:</span> <span id="edid-cable"></span></div>
     </div>
 
     <div id="edid-warning">⚠️ Warning: Data rate exceeds DP 1.4 maximum (25.92 Gbps). Consider DP 2.0 or compression.</div>
@@ -82,14 +81,6 @@
     const pclk = (hTotal * vTotal * r)/1e6;  // MHz
     const dr   = (pclk * 24)/1000;            // Gbps
 
-    // Cable recommendation
-    let cable;
-    if      (dr <= 4.95)  cable = 'HDMI1.2 / SL-DVI';
-    else if (dr <= 10.2)  cable = 'HDMI1.4 / DL-DVI';
-    else if (dr <= 18)    cable = 'HDMI2.0 / DP1.2';
-    else if (dr <= 25.92) cable = 'DP1.4';
-    else                  cable = 'DP2.0+';
-
     // Populate results
     container.querySelector('#edid-hTotal').textContent  = hTotal;
     container.querySelector('#edid-hFront').textContent  = hFront;
@@ -101,16 +92,11 @@
     container.querySelector('#edid-vActive').textContent = h;
     container.querySelector('#edid-pclk').textContent    = pclk.toFixed(2);
     container.querySelector('#edid-dr').textContent      = dr.toFixed(2);
-    container.querySelector('#edid-cable').textContent   = cable;
     container.querySelector('#edid-results').style.display = 'block';
 
     // Show warning if data rate exceeds DP1.4 spec
     const warning = container.querySelector('#edid-warning');
-    if (dr > 25.92) {
-      warning.style.display = 'block';
-    } else {
-      warning.style.display = 'none';
-    }
+    warning.style.display = dr > 25.92 ? 'block' : 'none';
 
     // EDID binary generation
     const edid = new Uint8Array(128).fill(0);

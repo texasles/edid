@@ -8,6 +8,10 @@
     document.body.appendChild(container);
   }
 
+    // Force at least 600px tall so Carrd’s embed can scroll instead of clipping
+  container.style.minHeight = '600px';
+
+
   // 2) Scoped styles
   const style = document.createElement('style');
   style.textContent = `

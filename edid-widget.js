@@ -9,7 +9,7 @@
   }
 
     // Force at least 600px tall so Carrd’s embed can scroll instead of clipping
-  container.style.minHeight = '600px';
+  container.style.minHeight = '800px';
 
 
   // 2) Scoped styles

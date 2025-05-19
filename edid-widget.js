@@ -19,6 +19,7 @@
     #edid-calculator button { margin-top:1rem; cursor:pointer; }
     #edid-calculator #edid-results { display:none; margin-top:1.5rem; background:#fff; padding:1rem; border-radius:4px; line-height:1.4; overflow:auto; }
     #edid-calculator #edid-results span { font-weight:bold; }
+    #edid-calculator #edid-warning { display:none; margin-top:1rem; padding:0.75rem; background:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:4px; }
     #edid-calculator #edid-download, #edid-calculator #edid-download-img { display:none; margin-top:1rem; text-align:center; width:100%; }
   `;
   container.appendChild(style);
@@ -48,6 +49,7 @@
       <div><span>Cable Rec:</span> <span id="edid-cable"></span></div>
     </div>
 
+    <div id="edid-warning">⚠️ Warning: Data rate exceeds DP 1.4 maximum (25.92 Gbps). Consider DP 2.0 or compression.</div>
     <a id="edid-download" href="#" download="custom.edid.bin">⬇️ Download EDID .bin</a>
     <a id="edid-download-img" href="#" download="edid-info.jpg">⬇️ Download Info as JPEG</a>
   `;
@@ -67,18 +69,18 @@
     const r  = +container.querySelector('#edid-refresh').value;
     const rb = container.querySelector('#edid-rb').checked;
 
-    // Horizontal porches
+    // Horizontal timing calculations
     const hFront = rb ? 48 : Math.floor((w*0.2)/3);
     const hSync  = rb ? 32 : 44;
     const hBack  = rb ? 80 : Math.floor(w*0.2) - hFront - hSync;
     const hTotal = w + hFront + hSync + hBack;
-    // Vertical fixed
+    // Vertical fixed parameters
     const vFront = 3, vSync = 5, vBack = 36;
     const vTotal = h + vFront + vSync + vBack;
 
     // Pixel clock & data rate
-    const pclk = (hTotal * vTotal * r)/1e6;  // in MHz
-    const dr   = (pclk * 24)/1000;            // in Gbps
+    const pclk = (hTotal * vTotal * r)/1e6;  // MHz
+    const dr   = (pclk * 24)/1000;            // Gbps
 
     // Cable recommendation
     let cable;
@@ -102,7 +104,15 @@
     container.querySelector('#edid-cable').textContent   = cable;
     container.querySelector('#edid-results').style.display = 'block';
 
-    // EDID binary
+    // Show warning if data rate exceeds DP1.4 spec
+    const warning = container.querySelector('#edid-warning');
+    if (dr > 25.92) {
+      warning.style.display = 'block';
+    } else {
+      warning.style.display = 'none';
+    }
+
+    // EDID binary generation
     const edid = new Uint8Array(128).fill(0);
     edid.set([0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00], 0);
     edid.set([0x4C,0x2D], 8);
@@ -124,8 +134,7 @@
     edid[D+12] =  vSync & 0xFF;
     edid[D+13] = ((vSync>>4)&0xF)<<4 | ((vFront>>4)&0xF);
     edid[D+17] = 0x1E;
-    let sum = 0;
-    for (let i = 0; i < 127; i++) sum += edid[i];
+    let sum = 0; for (let i = 0; i < 127; i++) sum += edid[i];
     edid[127] = (256 - (sum % 256)) % 256;
 
     const binBlob = new Blob([edid], {type:'application/octet-stream'});
@@ -151,4 +160,3 @@
   // 6) Wire up the button
   container.querySelector('#edid-gen-btn').addEventListener('click', generate);
 })();
-

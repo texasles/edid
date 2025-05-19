@@ -1,5 +1,6 @@
 // edid-widget.js
 (function() {
+  // 1) Container
   let container = document.getElementById('edid-calculator');
   if (!container) {
     container = document.createElement('div');
@@ -7,11 +8,12 @@
     document.body.appendChild(container);
   }
 
+  // 2) Scoped styles
   const style = document.createElement('style');
   style.textContent = `
-    #edid-calculator { font-family: Arial,sans-serif; background:#f5f5f5; padding:1rem; border-radius:6px; max-width:600px; margin:auto; }
+    #edid-calculator { font-family:Arial,sans-serif; background:#f5f5f5; padding:1rem; border-radius:6px; max-width:600px; margin:auto; }
     #edid-calculator label { display:block; margin:0.75rem 0 0.25rem; font-weight:bold; }
-    #edid-calculator input, #edid-calculator select, #edid-gen-btn { width:100%; padding:0.5rem; font-size:1rem; }
+    #edid-calculator input, #edid-calculator select, #edid-gen-btn { width:100%; padding:0.5rem; font-size:1rem; box-sizing:border-box; }
     #edid-gen-btn { margin-top:1rem; cursor:pointer; }
     #edid-results { display:none; margin-top:1.5rem; background:#fff; padding:1rem; border-radius:4px; line-height:1.4; }
     #edid-results span { font-weight:bold; }
@@ -19,6 +21,7 @@
   `;
   container.appendChild(style);
 
+  // 3) UI
   container.innerHTML += `
     <h2>EDID Calculator</h2>
     <label>Width (px)<input id="edid-width" type="number" value="1920"></label>
@@ -47,69 +50,84 @@
     <a id="edid-download-img" href="#" download="edid-info.jpg">⬇️ Download Info as JPEG</a>
   `;
 
+  // 4) Logic
   function generate() {
-    // gather inputs
     const w  = +document.getElementById('edid-width').value;
     const h  = +document.getElementById('edid-height').value;
     const r  = +document.getElementById('edid-refresh').value;
     const rb = document.getElementById('edid-rb').checked;
 
-    // timing calc (CVT-RB vs CVT)
-    const hFront = rb ? 48 : Math.round((w * 0.2) / 3);
+    // CVT vs CVT-RB
+    const hFront = rb ? 48 : Math.floor((w*0.2)/3);
     const hSync  = rb ? 32 : 44;
-    const hBack  = rb ? 80 : Math.round(w * 0.2) - hFront - hSync;
+    const hBack  = rb ? 80 : Math.floor(w*0.2) - hFront - hSync;
     const hTotal = w + hFront + hSync + hBack;
-    const vFront = rb ? 3 : 3;
-    const vSync  = rb ? 5 : 5;
-    const vBack  = rb ? 36 : 36;
+
+    const vFront = 3, vSync = 5, vBack = 36;
     const vTotal = h + vFront + vSync + vBack;
 
-    const pclk = (hTotal * vTotal * r) / 1e6;         // MHz
-    const dr   = (pclk * 24) / 1000;                  // Gbps
+    const pclk = (hTotal * vTotal * r)/1e6;       // MHz
+    const dr   = (pclk * 24)/1000;                 // Gbps
 
-    // cable rec
-    let cable = dr <= 4.95 ? "HDMI1.2/SL-DVI"
-              : dr <= 10.2 ? "HDMI1.4/DL-DVI"
-              : dr <= 18   ? "HDMI2.0/DP1.2"
-              : dr <= 25.92? "DP1.4"
-              :               "DP2.0+";
+    let cable;
+    if      (dr <= 4.95)  cable = "HDMI1.2 / SL-DVI";
+    else if (dr <= 10.2)  cable = "HDMI1.4 / DL-DVI";
+    else if (dr <= 18)    cable = "HDMI2.0 / DP1.2";
+    else if (dr <= 25.92) cable = "DP1.4";
+    else                  cable = "DP2.0+";
 
-    // populate
-    document.getElementById('edid-hTotal').textContent = hTotal;
-    document.getElementById('edid-hFront').textContent = hFront;
-    document.getElementById('edid-hSync').textContent  = hSync;
-    document.getElementById('edid-hActive').textContent= w;
-    document.getElementById('edid-vTotal').textContent = vTotal;
-    document.getElementById('edid-vFront').textContent = vFront;
-    document.getElementById('edid-vSync').textContent  = vSync;
-    document.getElementById('edid-vActive').textContent= h;
+    // Populate results
+    document.getElementById('edid-hTotal').textContent  = hTotal;
+    document.getElementById('edid-hFront').textContent  = hFront;
+    document.getElementById('edid-hSync').textContent   = hSync;
+    document.getElementById('edid-hActive').textContent = w;
+    document.getElementById('edid-vTotal').textContent  = vTotal;
+    document.getElementById('edid-vFront').textContent  = vFront;
+    document.getElementById('edid-vSync').textContent   = vSync;
+    document.getElementById('edid-vActive').textContent = h;
     document.getElementById('edid-pclk').textContent    = pclk.toFixed(2);
     document.getElementById('edid-dr').textContent      = dr.toFixed(2);
     document.getElementById('edid-cable').textContent   = cable;
     document.getElementById('edid-results').style.display = 'block';
 
-    // build EDID .bin (omitted for brevity – same as before)
+    // --- EDID binary generation ---
     const edid = new Uint8Array(128).fill(0);
-    /* … EDID header + DTD code … */
-    // [Use the same binary generation you already have]
+    edid.set([0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00], 0);
+    edid.set([0x4C,0x2D], 8);
+    edid[16]=1; edid[17]=4;
+    const D = 54;
+    const clk10k = Math.round(pclk*100);
+    edid[D]   =  clk10k & 0xFF;
+    edid[D+1] = (clk10k>>8)&0xFF;
+    edid[D+2] =  w &0xFF;
+    edid[D+3] = (hTotal-w)&0xFF;
+    edid[D+4] = ((w>>8)&0xF)<<4 | (((hTotal-w)>>8)&0xF);
+    edid[D+5] =  h &0xFF;
+    edid[D+6] = (vTotal-h)&0xFF;
+    edid[D+7] = ((h>>8)&0xF)<<4 | (((vTotal-h)>>8)&0xF);
+    edid[D+8] =  hFront;
+    edid[D+9] =  hSync;
+    edid[D+10]= ((hSync>>8)&0x3)<<6 | ((hFront>>8)&0x3)<<4;
+    edid[D+11]=  vFront;
+    edid[D+12]=  vSync;
+    edid[D+13]= ((vSync>>4)&0xF)<<4 | ((vFront>>4)&0xF);
+    edid[D+17]= 0x1E;
+    let sum=0; for(let i=0;i<127;i++) sum+=edid[i];
+    edid[127] = (256 - (sum%256))%256;
 
-    // hook up .bin download
-    const blob = new Blob([edid], {type:'application/octet-stream'});
-    const url  = URL.createObjectURL(blob);
+    const binURL = URL.createObjectURL(new Blob([edid],{type:'application/octet-stream'}));
     const binLink = document.getElementById('edid-download');
-    binLink.href = url;
+    binLink.href = binURL;
+    binLink.download = `EDID_${w}x${h}_${r.toFixed(2)}.bin`;
+    binLink.style.display = 'block';
 
-    // snapshot JPEG
-    const resultsElem = document.getElementById('edid-results');
-    html2canvas(resultsElem).then(canvas => {
-      const imgData = canvas.toDataURL('image/jpeg', 0.9);
+    // --- JPEG export ---
+    html2canvas(document.getElementById('edid-results')).then(canvas=>{
+      const imgData = canvas.toDataURL('image/jpeg',0.9);
       const imgLink = document.getElementById('edid-download-img');
       imgLink.href = imgData;
       imgLink.style.display = 'block';
     });
-
-    // also show .bin link
-    binLink.style.display = 'block';
   }
 
   document.getElementById('edid-gen-btn').addEventListener('click', generate);

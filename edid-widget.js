@@ -13,7 +13,7 @@
   // 2) Scoped styles
   const style = document.createElement('style');
   style.textContent = `
-    #edid-calculator { font-family: Arial, sans-serif; padding: 1rem; border-radius: 20px; max-width: 600px; margin: auto; border: 1px solid #00FFC2; color: #fff; }
+    #edid-calculator { background: #171A1C; font-family: Arial, sans-serif; padding: 1rem; border-radius: 20px; max-width: 600px; margin: auto; border: 1px solid #00FFC2; color: #fff; }
     #edid-calculator label { display: block; margin: 0.75rem 0 0.25rem; font-weight: bold; }
     #edid-calculator input {background: none;}    
     #edid-calculator input, #edid-calculator button { width: 100%; padding: 0.5rem; font-size: 1rem; box-sizing: border-box; }

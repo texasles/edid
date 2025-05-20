@@ -8,13 +8,14 @@
     document.body.appendChild(container);
   }
   // Allow scrolling if Carrd crops the widget
-  container.style.minHeight = '600px';
+  // container.style.minHeight = '600px';
 
   // 2) Scoped styles
   const style = document.createElement('style');
   style.textContent = `
     #edid-calculator { font-family: Arial, sans-serif; padding: 1rem; border-radius: 20px; max-width: 600px; margin: auto; border: 1px solid #00FFC2; color: #fff; }
     #edid-calculator label { display: block; margin: 0.75rem 0 0.25rem; font-weight: bold; }
+    #edid-calculator input {background: none;}    
     #edid-calculator input, #edid-calculator button { width: 100%; padding: 0.5rem; font-size: 1rem; box-sizing: border-box; }
     #edid-calculator button { margin-top: 1rem; cursor: pointer; }
     #edid-calculator #edid-results { display: none; margin-top: 1.5rem;  padding: 1rem; border-radius: 4px; line-height: 1.4; overflow: auto; border: 1px solid #00FFC2;}

@@ -17,7 +17,7 @@
     #edid-calculator label { display: block; margin: 0.75rem 0 0.25rem; font-weight: bold; }
     #edid-calculator input {background: none;}    
     #edid-calculator input, #edid-calculator button { width: 100%; padding: 0.5rem; font-size: 1rem; box-sizing: border-box; }
-    #edid-calculator button { margin-top: 1rem; cursor: pointer; }
+    #edid-calculator button { margin-top: 1rem; cursor: pointer; background: #00FFC2; }
     #edid-calculator #edid-results { display: none; margin-top: 1.5rem;  padding: 1rem; border-radius: 4px; line-height: 1.4; overflow: auto; border: 1px solid #00FFC2;}
     #edid-calculator #edid-results span { font-weight: bold; }
     #edid-calculator #edid-warning { display: none; margin-top: 1rem; padding: 0.75rem; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 4px; }

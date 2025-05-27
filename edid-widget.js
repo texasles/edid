@@ -1,7 +1,7 @@
 // edid-widget.js
 (function() {
   const container = document.getElementById('edid-calculator') || document.body;
-  container.style.minHeight = '600px';
+  container.style.minHeight = '800px';
 
   let html2canvasReady = false;
   const loader = document.createElement('script');

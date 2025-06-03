@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EDID Widget (CVT-RB Default)</title>
+  <title>EDID Calculator</title>
+
+  <!-- PWA: theme color -->
+  <meta name="theme-color" content="#00FFC2" />
+
+  <!-- Link to manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- iOS support (optional) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EDID Calc" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -14,7 +27,7 @@
       box-sizing: border-box;
       border: 1px solid #00FFC2;
       border-radius: 12px;
-
+      max-width: 400px;
     }
     h1 {
       font-size: 1.2rem;
@@ -87,6 +100,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <h1>EDID Calculator</h1>
@@ -101,7 +115,6 @@
   <input type="number" id="edid-refresh" step="0.01" value="60.00" />
 
   <div class="checkbox-container">
-    <!-- Checked by default -->
     <input type="checkbox" id="edid-rb" checked />
     <label for="edid-rb" style="display: inline;">Reduced Blanking (CVT-RB)</label>
   </div>
@@ -112,22 +125,22 @@
     <div class="values-section">
       <strong>Horizontal Values:</strong>
       <ul>
-        <li>Tot: <span id="edid-hTotal">–</span></li>
-        <li>Fr: <span id="edid-hFront">–</span></li>
-        <li>Act: <span id="edid-hActive">–</span></li>
-        <li>Sync: <span id="edid-hSync">–</span></li>
-        <li>Pol: <span id="edid-hPol">–</span></li>
+        <li>H Total: <span id="edid-hTotal">–</span></li>
+        <li>H Front Porch: <span id="edid-hFront">–</span></li>
+        <li>H Active: <span id="edid-hActive">–</span></li>
+        <li>H Sync: <span id="edid-hSync">–</span></li>
+        <li>H Polarity: <span id="edid-hPol">–</span></li>
       </ul>
     </div>
 
     <div class="values-section">
       <strong>Vertical Values:</strong>
       <ul>
-        <li>Tot: <span id="edid-vTotal">–</span></li>
-        <li>Fr: <span id="edid-vFront">–</span></li>
-        <li>Act: <span id="edid-vActive">–</span></li>
-        <li>Sync: <span id="edid-vSync">–</span></li>
-        <li>Pol: <span id="edid-vPol">–</span></li>
+        <li>V Total: <span id="edid-vTotal">–</span></li>
+        <li>V Front Porch: <span id="edid-vFront">–</span></li>
+        <li>V Active: <span id="edid-vActive">–</span></li>
+        <li>V Sync: <span id="edid-vSync">–</span></li>
+        <li>V Polarity: <span id="edid-vPol">–</span></li>
       </ul>
     </div>
 
@@ -138,11 +151,26 @@
     </div>
   </div>
 
-  <!-- Only keep the JPEG-download link -->
   <a id="edid-download-img" class="download-link" download>⬇️ Download JPEG Info</a>
 
-  <!-- html2canvas must load before our JS -->
+  <!-- html2canvas must load before our own JS -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="edid-widget.js"></script>
+
+  <script>
+    // Register the service worker if supported
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('service-worker.js')
+          .then((registration) => {
+            console.log('✅ Service Worker registered with scope:', registration.scope);
+          })
+          .catch((err) => {
+            console.error('❌ Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
